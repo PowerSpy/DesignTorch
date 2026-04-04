@@ -5,10 +5,9 @@ import {
   useNodesState,
   useEdgesState,
   applyNodeChanges,
-  Handle,
-  Position,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import './App.css'
 import LayerNode from './LayerNode.jsx'
 
 const nodeTypes = { dimension: LayerNode }
@@ -42,7 +41,7 @@ export default function App() {
   )
 
   const onConnect = useCallback(
-    (connection) => setEdges((eds) => addEdge({ ...connection, style: { stroke: '#378ADD' } }, eds)),
+    (connection) => setEdges((eds) => addEdge({ ...connection, animated: true, style: { stroke: '#378ADD'} }, eds)),
     [setEdges]
   )
 
@@ -66,8 +65,41 @@ export default function App() {
     return graph
   }
 
+  async function convertToPytorch() {
+    const graph = exportNodes()
+    const response = await fetch('http://localhost:8000/convert/pytorch', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        nodes: graph.nodes,
+        edges: graph.edges
+      }),
+    })
+    const data = await response.json()
+    if (data.success && data.code) {
+      try {
+        await navigator.clipboard.writeText(data.code)
+      } catch (err) {
+        console.error('Failed to copy:', err)
+        const blob = new Blob([data.code], { type: 'text/plain' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'model.py'
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+    }
+  }
+
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
+    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      <button
+        onClick={convertToPytorch}
+        className="export-btn"
+      >
+        Export Nodes
+      </button>
       <ReactFlow
         nodes={nodes}
         edges={edges}
