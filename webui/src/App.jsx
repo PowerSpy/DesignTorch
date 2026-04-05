@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import {
   ReactFlow,
   addEdge,
@@ -13,9 +13,6 @@ import LayerNode from './LayerNode.jsx'
 const nodeTypes = { dimension: LayerNode }
 
 const initialNodes = [
-  { id: 'a', type: 'dimension', position: { x: 100, y: 100 }, data: { nodeType: "linear", label: "layer1", input: 150, output: 150 } },
-  { id: 'b', type: 'dimension', position: { x: 300, y: 200 }, data: { nodeType: "linear", label: "layer2", input: 200, output: 200 } },
-  { id: 'c', type: 'dimension', position: { x: 500, y: 100 }, data: { nodeType: "linear", label: "layer3", input: 300, output: 300 } },
   { id: 'start', type: 'dimension', position: { x: 100, y: 50 }, data: { nodeType: "start", label: 'Start' } },
   { id: 'end',   type: 'dimension', position: { x: 600, y: 250 }, data: { nodeType: "end", label: 'End' } },
 ]
@@ -23,6 +20,11 @@ const initialNodes = [
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [query, setQuery] = useState("")
+  const [nodeIndex, setNodeIndex] = useState(0)
+
+  const [menuIsOpen, setMenuIsOpen] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
 
   const handleNodesChange = useCallback(
     (changes) => {
@@ -92,8 +94,36 @@ export default function App() {
     }
   }
 
+  const nodeTypesList = ["linear", "start", "end"]
+
+  function searchForNode(query) {
+    if (!query) return nodeTypesList
+    return nodeTypesList.filter(type =>
+      type.toLowerCase().includes(query.toLowerCase())
+    )
+  }
+
+  function handleMenuToggle() {
+    if (menuIsOpen) {
+      setIsExiting(true)
+      setTimeout(() => {
+        setMenuIsOpen(false)
+        setIsExiting(false)
+        setQuery("")
+      }, 250)
+    } else {
+      setMenuIsOpen(true)
+    }
+  }
+
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      <button
+        onClick={handleMenuToggle}
+        className="add-node-btn"
+      >
+        Add Node
+      </button>
       <button
         onClick={convertToPytorch}
         className="export-btn"
@@ -108,7 +138,57 @@ export default function App() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         fitView
-      />
+      >
+       {menuIsOpen && (
+        <>
+          <div className={`menu-backdrop ${isExiting ? 'exiting' : ''}`} onClick={handleMenuToggle}></div>
+          <div className={`node-selection-menu ${isExiting ? 'exiting' : ''}`}>
+            <input
+              type="text"
+              placeholder="Search node types..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoFocus
+            />
+            <ul>
+              {searchForNode(query).map((type) => (
+                <li
+                  key={type}
+                  onClick={() => { // Create a function for this later to prevent duplicate unnecesary code
+                    const newNode = {
+                      id: `node-${nodeIndex}`,
+                      type: 'dimension',
+                      position: { x: 400, y: 200 },
+                      data: { nodeType: type, label: `node-${nodeIndex}`, input: 100, output: 100 } // Create a way to modify the input/output/label
+                    }
+                    setNodeIndex(nodeIndex + 1)
+                    setNodes((nds) => [...nds, newNode])
+                    handleMenuToggle()
+                  }}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      const newNode = {
+                        id: `node-${nodeIndex}`,
+                        type: 'dimension',
+                        position: { x: 400, y: 200 },
+                        data: { nodeType: type, label: `node-${nodeIndex}`, input: 100, output: 100 }
+                      }
+                      setNodeIndex(nodeIndex + 1)
+                      setNodes((nds) => [...nds, newNode])
+                      handleMenuToggle()
+                    }
+                  }}
+                >
+                  {type}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      )}
+      </ReactFlow>
     </div>
   )
 }

@@ -1,28 +1,321 @@
+/* ============================================================
+   Design Tokens
+   ============================================================ */
+:root {
+  /* Colors */
+  --color-primary:          #378ADD;
+  --color-primary-hover:    #2a6fb8;
+  --color-secondary:        #414141;
+  --color-secondary-hover:  #555555;
+  --color-background:       #0f0f0f;
+  --color-surface:          rgba(30, 30, 30, 0.85);
+  --color-text:             #ffffff;
+  --color-text-secondary:   #a0a0a0;
+  --color-border:           rgba(255, 255, 255, 0.10);
+  --color-border-hover:     rgba(55, 138, 221, 0.40);
+  --color-divider:          rgba(255, 255, 255, 0.06);
+
+  /* Radii */
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+
+  /* Shadows */
+  --shadow-sm:  0 2px  8px rgba(0, 0, 0, 0.30);
+  --shadow-md:  0 4px 16px rgba(0, 0, 0, 0.40);
+  --shadow-lg:  0 8px 32px rgba(0, 0, 0, 0.50);
+
+  /* Transitions */
+  --duration-fast:   150ms;
+  --duration-normal: 250ms;
+  --duration-slow:   350ms;
+  --ease-standard:   cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Spacing */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  12px;
+  --space-lg:  16px;
+  --space-xl:  24px;
+  --space-2xl: 32px;
+}
+
+
+/* ============================================================
+   Base
+   ============================================================ */
 #root {
+  width: 100%;
+  height: 100%;
   max-width: none;
   margin: 0;
   padding: 0;
   text-align: left;
-  width: 100%;
-  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+
+/* ============================================================
+   Shared Button Base
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    box-shadow      var(--duration-fast) var(--ease-standard),
+    transform       var(--duration-fast) var(--ease-standard);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+
+/* ============================================================
+   Floating Action Buttons
+   ============================================================ */
+button.export-btn,
+button.add-node-btn {
+  position: absolute;
+  top: var(--space-lg);
+  z-index: 1000;
 }
 
 button.export-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
-  padding: 8px 16px;
-  background-color: #378ADD;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: none;
+  right: var(--space-lg);
+  background-color: var(--color-primary);
 }
 
 button.export-btn:hover {
-  background-color: #2a6fb8;
-  border-color: transparent;
+  background-color: var(--color-primary-hover);
 }
 
+button.add-node-btn {
+  left: var(--space-lg);
+  background-color: var(--color-secondary);
+}
+
+button.add-node-btn:hover {
+  background-color: var(--color-secondary-hover);
+}
+
+/* Inherit shared button styles */
+button.export-btn,
+button.add-node-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-sm) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    box-shadow      var(--duration-fast) var(--ease-standard),
+    transform       var(--duration-fast) var(--ease-standard);
+}
+
+button.export-btn:hover,
+button.add-node-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+button.export-btn:active,
+button.add-node-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+
+/* ============================================================
+   Backdrop
+   ============================================================ */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  /* Fade IN */
+  animation: backdrop-in var(--duration-normal) var(--ease-standard) forwards;
+}
+
+.menu-backdrop.exiting {
+  /* Fade OUT — mirrors the enter, reversed */
+  animation: backdrop-out var(--duration-normal) var(--ease-standard) forwards;
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes backdrop-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+
+/* ============================================================
+   Node Selection Menu
+   ============================================================ */
+.node-selection-menu {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  translate: -50% -50%;
+  z-index: 2000;
+
+  width: min(400px, 90vw);
+  max-height: min(500px, 80vh);
+  overflow: hidden;
+
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-lg);
+
+  /* Fade + scale IN */
+  animation: menu-in var(--duration-normal) var(--ease-standard) forwards;
+}
+
+.node-selection-menu.exiting {
+  /* Fade + scale OUT */
+  animation: menu-out var(--duration-normal) var(--ease-standard) forwards;
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    scale: 0.95;
+    translate: -50% calc(-50% + 12px);
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    translate: -50% -50%;
+  }
+}
+
+@keyframes menu-out {
+  from {
+    opacity: 1;
+    scale: 1;
+    translate: -50% -50%;
+  }
+  to {
+    opacity: 0;
+    scale: 0.95;
+    translate: -50% calc(-50% - 8px);
+  }
+}
+
+
+/* ---- Search Input ---- */
+.node-selection-menu input {
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+  box-sizing: border-box;
+
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: 14px;
+  outline: none;
+
+  transition:
+    border-color       var(--duration-fast) var(--ease-standard),
+    background-color   var(--duration-fast) var(--ease-standard);
+}
+
+.node-selection-menu input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.node-selection-menu input:focus {
+  border-color: var(--color-primary);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+
+/* ---- List ---- */
+.node-selection-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: calc(min(500px, 80vh) - 120px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.node-selection-menu ul::-webkit-scrollbar       { width: 6px; }
+.node-selection-menu ul::-webkit-scrollbar-track  { background: transparent; }
+.node-selection-menu ul::-webkit-scrollbar-thumb  { background: var(--color-border); border-radius: 3px; }
+.node-selection-menu ul::-webkit-scrollbar-thumb:hover { background: var(--color-text-secondary); }
+
+
+/* ---- List Items ---- */
+.node-selection-menu li {
+  position: relative;
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-xs);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text);
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.03);
+
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color     var(--duration-fast) var(--ease-standard);
+}
+
+.node-selection-menu li:last-child {
+  margin-bottom: 0;
+}
+
+.node-selection-menu li:hover {
+  background-color: rgba(55, 138, 221, 0.15);
+  border-color: var(--color-border-hover);
+}
+
+.node-selection-menu li:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

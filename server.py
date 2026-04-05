@@ -32,7 +32,7 @@ class GraphRequest(BaseModel):
 async def convert_pytorch(request: GraphRequest):
     edges = request.edges
     nodes = request.nodes
-    has_start = any(edge.from_ == "start" for edge in edges)
+    has_start = any(edge.from_ == "start" for edge in edges) # Fix later, needs to check the label not id
     has_end = any(edge.to == "end" for edge in edges)
     
     valid = has_start and has_end
